@@ -1,4 +1,4 @@
-package fr.gillouard.tdvelo.client.epreuve.widget;
+package fr.gillouard.tdvelo.client.palmares.widget;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,11 +11,11 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 
-import fr.gillouard.tdvelo.client.epreuve.service.EpreuveService;
-import fr.gillouard.tdvelo.client.epreuve.service.EpreuveServiceAsync;
+import fr.gillouard.tdvelo.client.palmares.service.PalmaresService;
+import fr.gillouard.tdvelo.client.palmares.service.PalmaresServiceAsync;
 import fr.gillouard.tdvelo.shared.Epreuve;
 
-public class EpreuveWidget {
+public class PalmaresWidget {
 
 	/**
 	 * Timer pour les traitements a intervalles reguliers
@@ -33,10 +33,10 @@ public class EpreuveWidget {
 	 * Create a remote service proxy to talk to the server-side Greeting
 	 * service.
 	 */
-	private final EpreuveServiceAsync epreuveService = GWT
-			.create(EpreuveService.class);
+	private final PalmaresServiceAsync epreuveService = GWT
+			.create(PalmaresService.class);
 
-	public EpreuveWidget() {
+	public PalmaresWidget() {
 		// TODO Constitution de la liste des disciplines à visualiser
 		disciplines = new ArrayList<String>();
 
