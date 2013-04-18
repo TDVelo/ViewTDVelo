@@ -1,0 +1,21 @@
+<!DOCTYPE log4j:configuration PUBLIC "-//APACHE//DTD LOG4J 1.2//EN" "http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd" [
+	<!ENTITY REP_DEST "/home/c2873/git/GestionTDVelo/GestionTDVelo/logs">
+]>
+<log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/'>
+
+	<!-- Appender notification -->
+	<appender name="Default" class="org.apache.log4j.FileAppender">
+		<param name="File" value="&REP_DEST;/tdvelo.log" />
+		<param name="Append" value="false"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d [%-5p] %37c (%M() ligne %L) %m%n"/>
+		</layout>
+	</appender>
+
+ 	<!-- Par défaut -->	
+	<root>
+		<level value="DEBUG" />
+		<appender-ref ref="Default" />
+	</root>
+
+</log4j:configuration>
