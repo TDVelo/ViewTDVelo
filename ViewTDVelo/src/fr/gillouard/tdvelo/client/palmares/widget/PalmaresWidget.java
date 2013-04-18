@@ -47,21 +47,21 @@ public class PalmaresWidget {
 			// le but est de remonter tous les 5 secondes les resultats et
 			// d'afficher a tour de roles les N épreuves
 			public void run() {
-				epreuveService.getListeEpreuve(51,
-						new AsyncCallback<List<Epreuve>>() {
-
-							@Override
-							public void onSuccess(List<Epreuve> result) {
-								draw(result);
-
-							}
-
-							@Override
-							public void onFailure(Throwable caught) {
-								Window.alert("Erreur lors de la remonter des épreuves");
-
-							}
-						});
+//				epreuveService.getListeEpreuve(51,
+//						new AsyncCallback<List<Epreuve>>() {
+//
+//							@Override
+//							public void onSuccess(List<Epreuve> result) {
+//								draw(result);
+//
+//							}
+//
+//							@Override
+//							public void onFailure(Throwable caught) {
+//								Window.alert("Erreur lors de la remonter des épreuves");
+//
+//							}
+//						});
 			}
 		};
 

@@ -6,23 +6,13 @@
 
 	<!-- Servlets -->
 	<servlet>
-		<servlet-name>coureurServlet</servlet-name>
-		<servlet-class>fr.gillouard.tdvelo.server.coureur.CoureurServiceImpl</servlet-class>
+		<servlet-name>palmaresServlet</servlet-name>
+		<servlet-class>fr.gillouard.tdvelo.server.palmares.PalmaresServiceImpl</servlet-class>
 	</servlet>
 
 	<servlet-mapping>
-		<servlet-name>coureurServlet</servlet-name>
-		<url-pattern>/viewtdvelo/coureur</url-pattern>
-	</servlet-mapping>
-
-	<servlet>
-		<servlet-name>epreuveServlet</servlet-name>
-		<servlet-class>fr.gillouard.tdvelo.server.epreuve.EpreuveServiceImpl</servlet-class>
-	</servlet>
-
-	<servlet-mapping>
-		<servlet-name>epreuveServlet</servlet-name>
-		<url-pattern>/viewtdvelo/epreuve</url-pattern>
+		<servlet-name>palmaresServlet</servlet-name>
+		<url-pattern>/viewtdvelo/palmares</url-pattern>
 	</servlet-mapping>
 
 </web-app>
