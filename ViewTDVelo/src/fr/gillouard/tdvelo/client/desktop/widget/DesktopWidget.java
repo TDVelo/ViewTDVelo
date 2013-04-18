@@ -5,14 +5,14 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
 
-import fr.gillouard.tdvelo.client.epreuve.widget.EpreuveWidget;
+import fr.gillouard.tdvelo.client.palmares.widget.PalmaresWidget;
 
 public class DesktopWidget implements IsWidget {
 
 	@Override
 	public Widget asWidget() {
 
-		final EpreuveWidget epreuveWid = new EpreuveWidget();
+		final PalmaresWidget epreuveWid = new PalmaresWidget();
 
 		// wid.asWidget();
 		final HorizontalLayoutContainer hlc = new HorizontalLayoutContainer();
@@ -20,7 +20,7 @@ public class DesktopWidget implements IsWidget {
 
 		final ContentPanel cp1 = new ContentPanel();
 		cp1.setHeadingText("Epreuves");
-		cp1.setPixelSize(500, 350);
+		cp1.setPixelSize(1010, 740);
 		cp1.setWidget(epreuveWid.asWidget());
 		hlc.add(cp1);
 

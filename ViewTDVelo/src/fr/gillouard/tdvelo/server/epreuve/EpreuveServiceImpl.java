@@ -12,12 +12,12 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
-import fr.gillouard.tdvelo.client.epreuve.service.EpreuveService;
+import fr.gillouard.tdvelo.client.palmares.service.PalmaresService;
 import fr.gillouard.tdvelo.server.DataSource;
 import fr.gillouard.tdvelo.shared.Epreuve;
 
 public class EpreuveServiceImpl extends RemoteServiceServlet implements
-		EpreuveService {
+		PalmaresService {
 
 	/** LOGGER. **/
 	private static final Log LOG = LogFactory.getLog(EpreuveServiceImpl.class);
