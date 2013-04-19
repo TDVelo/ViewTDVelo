@@ -1,6 +1,7 @@
 package fr.gillouard.tdvelo.server.palmares;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -11,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -23,8 +26,7 @@ import fr.gillouard.tdvelo.shared.Epreuve;
 import fr.gillouard.tdvelo.shared.Palmares;
 import fr.gillouard.tdvelo.shared.Resultat;
 
-public class PalmaresServiceImpl extends RemoteServiceServlet implements
-		PalmaresService {
+public class PalmaresServiceImpl extends RemoteServiceServlet implements PalmaresService {
 
 	private static final String ROUTE = "Route";
 	private static final String ADRESSE = "Adresse";
@@ -34,9 +36,8 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements
 	/** LOGGER. **/
 	private static final Log LOG = LogFactory.getLog(PalmaresServiceImpl.class);
 
-	public static String QUERRY_PALMARES = "SELECT * FROM epreuve, coureur "
-			+ "WHERE epreuve.dossard = coureur.dossard AND coureur.categorie =";
-	public static String ORDER_LISTE = " ORDER BY discipline,dossard";
+	public static String QUERRY_PALMARES = "SELECT * FROM epreuve, coureur WHERE epreuve.dossard = coureur.dossard AND coureur.categorie =?";
+	private static final String REQ_ALL_COUREUR = "SELECT * FROM coureur ORDER BY categorie,dossard";
 
 	/**
 	 * UID
@@ -44,10 +45,9 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements
 	private static final long serialVersionUID = -5217040857543351560L;
 
 	@Override
-	public Palmares getPalmaresParCategorie(final String categorie)
-			throws IllegalArgumentException {
+	public Palmares getPalmaresParCategorie(final String categorie) throws IllegalArgumentException {
 		Connection conn = null;
-		Statement select = null;
+		PreparedStatement select = null;
 		ResultSet result = null;
 
 		try {
@@ -59,9 +59,9 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements
 			List<Epreuve> listEpreuve = new ArrayList<Epreuve>();
 
 			conn = DataSource.getInstance().getConnection();
-			select = conn.createStatement();
-			result = select.executeQuery(QUERRY_PALMARES + categorie
-					+ ORDER_LISTE);
+			select = conn.prepareStatement(QUERRY_PALMARES);
+			select.setString(1, categorie);
+			result = select.executeQuery();
 
 			while (result.next()) {
 				// Sauvegarde des disciplines par dossard
@@ -71,17 +71,16 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements
 				epreuve.setTemps(result.getLong("temps"));
 				epreuve.setClassement(result.getInt("classement"));
 				epreuve.setPenalite(result.getLong("penalite"));
-				epreuve.setTempsCumule(result.getLong("temps")
-						+ result.getLong("penalite"));
+				epreuve.setTempsCumule(result.getLong("temps") + result.getLong("penalite"));
 				epreuve.setDossard(result.getInt("dossard"));
 
-				if (ROUTE.equals(epreuve)) {
+				if (ROUTE.equals(epreuve.getDiscipline())) {
 					listEpreuveRoute.add(epreuve);
-				} else if (ADRESSE.equals(epreuve)) {
+				} else if (ADRESSE.equals(epreuve.getDiscipline())) {
 					listEpreuveAdresse.add(epreuve);
-				} else if (CYCLO.equals(epreuve)) {
+				} else if (CYCLO.equals(epreuve.getDiscipline())) {
 					listEpreuvecyclocros.add(epreuve);
-				} else if (VITESSE.equals(epreuve)) {
+				} else if (VITESSE.equals(epreuve.getDiscipline())) {
 					listEpreuveVitesse.add(epreuve);
 				}
 				listEpreuve.add(epreuve);
@@ -91,7 +90,8 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements
 			Collections.sort(listEpreuveAdresse, new Comparator<Epreuve>() {
 				@Override
 				public int compare(final Epreuve o1, final Epreuve o2) {
-					// tri croissant
+					// tri croissant (le temps le plus faible en debut de liste
+					// pour etre classé premier)
 					if (o1.getTempsCumule() > o2.getTempsCumule()) {
 						return 1;
 					} else if (o1.getTempsCumule() < o2.getTempsCumule()) {
@@ -105,7 +105,8 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements
 			Collections.sort(listEpreuvecyclocros, new Comparator<Epreuve>() {
 				@Override
 				public int compare(final Epreuve o1, final Epreuve o2) {
-					// tri croissant
+					// tri croissant (le temps le plus faible en debut de liste
+					// pour etre classé premier)
 					if (o1.getTemps() > o2.getTemps()) {
 						return 1;
 					} else if (o1.getTemps() < o2.getTemps()) {
@@ -133,7 +134,8 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements
 			Collections.sort(listEpreuveVitesse, new Comparator<Epreuve>() {
 				@Override
 				public int compare(final Epreuve o1, final Epreuve o2) {
-					// tri croissant
+					// tri croissant (le temps le plus faible en debut de liste
+					// pour etre classé premier)
 					if (o1.getTemps() > o2.getTemps()) {
 						return 1;
 					} else if (o1.getTemps() < o2.getTemps()) {
@@ -144,34 +146,46 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements
 				}
 			});
 
-			Palmares palmares = new Palmares();
 			List<Resultat> resultats = new ArrayList<Resultat>();
-			palmares.setResultats(resultats);
-
 			List<Coureur> coureurs = this.getListeCoureur();
 
 			for (Coureur coureur : coureurs) {
 				Resultat resultat = new Resultat();
 				resultat.setCoureur(coureur);
 				Map<String, Epreuve> epreuves = new HashMap<String, Epreuve>();
-				// TODO calculer le classement grace a l'ordre de la liste
-				int i = 0;
-				boolean go = true;
-				Epreuve epreuve = null;
-				while (i <= listEpreuveVitesse.size() && go) {
-					epreuve = listEpreuveVitesse.get(i++);
-					if (epreuve.getDossard() == coureur.getDossard()) {
-						epreuve.setClassement(i);
-						go = false;
-					}
-				}
-				epreuves.put(VITESSE, epreuve);
+
+				// Calcul des classements par epreuve
+				int classementGeneral = ajouterEpreuveCoureur(epreuves, VITESSE, listEpreuveVitesse, coureur);
+				classementGeneral += ajouterEpreuveCoureur(epreuves, CYCLO, listEpreuvecyclocros, coureur);
+				classementGeneral += ajouterEpreuveCoureur(epreuves, ROUTE, listEpreuveRoute, coureur);
+				classementGeneral += ajouterEpreuveCoureur(epreuves, ADRESSE, listEpreuveAdresse, coureur);
 
 				resultat.setEpreuves(epreuves);
-				resultat.setClassementGeneral(epreuve.getClassement());
+				resultat.setClassementGeneral(classementGeneral);
 
-				palmares.setResultats(resultats);
+				resultats.add(resultat);
+
 			}
+
+			// Tri des lignes par classement general
+			Collections.sort(resultats, new Comparator<Resultat>() {
+				@Override
+				public int compare(final Resultat o1, final Resultat o2) {
+					// tri croissant
+					if (o1.getClassementGeneral() > o2.getClassementGeneral()) {
+						return 1;
+					} else if (o1.getClassementGeneral() < o2.getClassementGeneral()) {
+						return -1;
+					} else {
+						return 0;
+					}
+				}
+			});
+
+			// Constitution du Palmares
+			Palmares palmares = new Palmares();
+			palmares.setResultats(resultats);
+
 			return palmares;
 
 		} catch (SQLException e) {
@@ -203,8 +217,68 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements
 
 	}
 
-	private static final String REQ_ALL_COUREUR = "SELECT * FROM coureur ORDER BY categorie,dossard";
-	private static final String REQ_COUREUR = "SELECT * FROM coureur WHERE dossard =";
+	/**
+	 * Ajoute dans la MAP des epreuves l'epreuve du coureur en question dans
+	 * laquelle le classement est calcule
+	 * 
+	 * @param epreuves
+	 * @param discipline
+	 * @param listEpreuve
+	 * @param coureur
+	 * @return Classement de l'epreuve ou 999
+	 */
+	private int ajouterEpreuveCoureur(Map<String, Epreuve> epreuves, final String discipline,
+			final List<Epreuve> listEpreuve, Coureur coureur) {
+		Epreuve epreuve = this.calculerClassementCoureur(listEpreuve, coureur);
+		if (epreuve == null) {
+			epreuve = creerEpreuveSansClassement(discipline, coureur);
+		}
+		epreuves.put(discipline, epreuve);
+
+		return epreuve.getClassement();
+
+	}
+
+	private Epreuve creerEpreuveSansClassement(final String discipline, final Coureur coureur) {
+		// Classement non trouve : on consolide la MAP sans resultat
+		Epreuve epreuve = new Epreuve();
+		epreuve.setDiscipline(VITESSE);
+		epreuve.setDossard(coureur.getDossard());
+		epreuve.setClassement(1000);
+
+		return epreuve;
+	}
+
+	private Epreuve calculerClassementCoureur(final List<Epreuve> listEpreuve, final Coureur coureur) {
+
+		if (CollectionUtils.isEmpty(listEpreuve)) {
+			return null;
+		}
+
+		Epreuve epreuveCoureur = (Epreuve) CollectionUtils.find(listEpreuve, new Predicate() {
+			@Override
+			public boolean evaluate(Object epreuve) {
+				return ((Epreuve) epreuve).getDossard() == coureur.getDossard();
+			}
+		});
+		if (epreuveCoureur != null) {
+			int classement = listEpreuve.indexOf(epreuveCoureur);
+			epreuveCoureur.setClassement(classement);
+		}
+
+		// while (i < listEpreuve.size() && go) {
+		// epreuve = listEpreuve.get(i++);
+		// // recherche du coureur par le dossard
+		// if (epreuve.getDossard() == coureur.getDossard()) {
+		// // La position dans la liste donne le classement car elle est
+		// // triee
+		// epreuve.setClassement(i);
+		// go = false;
+		// }
+		// }
+
+		return epreuveCoureur;
+	}
 
 	private List<Coureur> getListeCoureur() throws IllegalArgumentException {
 
