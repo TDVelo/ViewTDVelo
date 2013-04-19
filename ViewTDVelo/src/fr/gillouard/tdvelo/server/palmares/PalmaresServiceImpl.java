@@ -28,10 +28,10 @@ import fr.gillouard.tdvelo.shared.Resultat;
 
 public class PalmaresServiceImpl extends RemoteServiceServlet implements PalmaresService {
 
-	private static final String ROUTE = "Route";
-	private static final String ADRESSE = "Adresse";
-	private static final String CYCLO = "Cyclo-cross";
-	private static final String VITESSE = "Vitesse";
+	public static final String ROUTE = "Route";
+	public static final String ADRESSE = "Adresse";
+	public static final String CYCLO = "Cyclo-cross";
+	public static final String VITESSE = "Vitesse";
 
 	/** LOGGER. **/
 	private static final Log LOG = LogFactory.getLog(PalmaresServiceImpl.class);
@@ -146,6 +146,12 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 				}
 			});
 
+			System.out.println("TEST DU TRI DES EPREUVES sans Classement");
+			displayEpreuves(listEpreuveVitesse);
+			displayEpreuves(listEpreuveRoute);
+			displayEpreuves(listEpreuvecyclocros);
+			displayEpreuves(listEpreuveAdresse);
+
 			List<Resultat> resultats = new ArrayList<Resultat>();
 			List<Coureur> coureurs = this.getListeCoureur();
 
@@ -167,6 +173,14 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 
 			}
 
+			System.out.println("TEST DU TRI DES EPREUVES avec Classement");
+			displayEpreuves(listEpreuveVitesse);
+			displayEpreuves(listEpreuveRoute);
+			displayEpreuves(listEpreuvecyclocros);
+			displayEpreuves(listEpreuveAdresse);
+
+			// TODO Mise a jour en base des classements ????
+			
 			// Tri des lignes par classement general
 			Collections.sort(resultats, new Comparator<Resultat>() {
 				@Override
@@ -182,7 +196,7 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 				}
 			});
 
-			// Constitution du Palmares
+			// Constitution du Palmares avec les classements
 			Palmares palmares = new Palmares();
 			palmares.setResultats(resultats);
 
@@ -225,7 +239,7 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 	 * @param discipline
 	 * @param listEpreuve
 	 * @param coureur
-	 * @return Classement de l'epreuve ou 999
+	 * @return Classement de l'epreuve ou 1000
 	 */
 	private int ajouterEpreuveCoureur(Map<String, Epreuve> epreuves, final String discipline,
 			final List<Epreuve> listEpreuve, Coureur coureur) {
@@ -240,9 +254,10 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 	}
 
 	private Epreuve creerEpreuveSansClassement(final String discipline, final Coureur coureur) {
-		// Classement non trouve : on consolide la MAP sans resultat
+		// Classement non trouve : on consolide la MAP sans resultat pour
+		// permettre les calculs de classment
 		Epreuve epreuve = new Epreuve();
-		epreuve.setDiscipline(VITESSE);
+		epreuve.setDiscipline(discipline);
 		epreuve.setDossard(coureur.getDossard());
 		epreuve.setClassement(1000);
 
@@ -255,27 +270,19 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 			return null;
 		}
 
+		// Recuperation du coureur
 		Epreuve epreuveCoureur = (Epreuve) CollectionUtils.find(listEpreuve, new Predicate() {
 			@Override
 			public boolean evaluate(Object epreuve) {
 				return ((Epreuve) epreuve).getDossard() == coureur.getDossard();
 			}
 		});
+
+		// Calcul de sont classement en retrouvant sa position dans la liste
 		if (epreuveCoureur != null) {
 			int classement = listEpreuve.indexOf(epreuveCoureur);
 			epreuveCoureur.setClassement(classement);
 		}
-
-		// while (i < listEpreuve.size() && go) {
-		// epreuve = listEpreuve.get(i++);
-		// // recherche du coureur par le dossard
-		// if (epreuve.getDossard() == coureur.getDossard()) {
-		// // La position dans la liste donne le classement car elle est
-		// // triee
-		// epreuve.setClassement(i);
-		// go = false;
-		// }
-		// }
 
 		return epreuveCoureur;
 	}
@@ -312,4 +319,45 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 		return lstCoureur;
 	}
 
+	public void displayEpreuves(final List<Epreuve> epreuves) {
+		for (Epreuve epreuve : epreuves) {
+			System.out.println(PalmaresServiceImpl.epreuveToString(epreuve));
+		}
+	}
+
+	public static String coureurToString(final Coureur coureur) {
+		StringBuffer display = new StringBuffer();
+		display.append(coureur.getCategorie());
+		display.append(" - ");
+		display.append(coureur.getNom());
+		display.append(" - ");
+		display.append(coureur.getPrenom());
+		display.append(" - ");
+		display.append(coureur.getDossard());
+		display.append(" - ");
+		display.append(coureur.getClub());
+		display.append(" - ");
+		display.append(coureur.getEquipe());
+
+		return display.toString();
+
+	}
+
+	public static String epreuveToString(final Epreuve epreuve) {
+		StringBuffer display = new StringBuffer();
+
+		display.append(epreuve.getDiscipline());
+		display.append(" - classement : ");
+		display.append(epreuve.getClassement());
+		display.append(" - tps : ");
+		display.append(epreuve.getTemps());
+		display.append(" - penalite : ");
+		display.append(epreuve.getPenalite());
+		display.append(" - cumule : ");
+		display.append(epreuve.getTempsCumule());
+		display.append(" - dossard : ");
+		display.append(epreuve.getDossard());
+
+		return display.toString();
+	}
 }
