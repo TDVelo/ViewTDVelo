@@ -4,6 +4,31 @@ import java.io.Serializable;
 
 public class Epreuve implements Serializable {
 
+	public enum Discipline {
+		ROUTE("Route"), ADRESSE("Adresse"), CYCLOCROSS("Cyclo-cross"), VITESSE("Vitesse");
+
+		private Discipline(final String discipline) {
+			this.discipline = discipline;
+		}
+
+		private final String discipline;
+
+		@Override
+		public String toString() {
+			return discipline;
+		}
+
+		public static Discipline ValueOf(final String discipline) {
+			for (Discipline e : values()) {
+				if (e.toString().equals(discipline)) {
+					return e;
+				}
+			}
+			return null;
+
+		}
+	}
+
 	/**
 	 * Version Uid
 	 */
@@ -19,12 +44,12 @@ public class Epreuve implements Serializable {
 		this.dossard = dossard;
 	}
 
-	private String discipline;
+	private Discipline discipline;
 
 	private long temps;
 
 	private long penalite;
-	
+
 	private long tempsCumule;
 
 	public long getTempsCumule() {
@@ -48,7 +73,7 @@ public class Epreuve implements Serializable {
 	/**
 	 * @return the discipline
 	 */
-	public String getDiscipline() {
+	public Discipline getDiscipline() {
 		return discipline;
 	}
 
@@ -56,7 +81,7 @@ public class Epreuve implements Serializable {
 	 * @param discipline
 	 *            the discipline to set
 	 */
-	public void setDiscipline(String discipline) {
+	public void setDiscipline(Discipline discipline) {
 		this.discipline = discipline;
 	}
 

@@ -3,6 +3,8 @@ package fr.gillouard.tdvelo.shared;
 import java.io.Serializable;
 import java.util.Map;
 
+import fr.gillouard.tdvelo.shared.Epreuve.Discipline;
+
 public class Resultat implements Serializable {
 
 	/**
@@ -20,11 +22,11 @@ public class Resultat implements Serializable {
 		this.coureur = coureur;
 	}
 
-	public Map<String, Epreuve> getEpreuves() {
+	public Map<Discipline, Epreuve> getEpreuves() {
 		return epreuves;
 	}
 
-	public void setEpreuves(Map<String, Epreuve> epreuves) {
+	public void setEpreuves(Map<Discipline, Epreuve> epreuves) {
 		this.epreuves = epreuves;
 	}
 
@@ -36,7 +38,7 @@ public class Resultat implements Serializable {
 		this.classementGeneral = classementGeneral;
 	}
 
-	private Map<String, Epreuve> epreuves;
+	private Map<Discipline, Epreuve> epreuves;
 
 	private int classementGeneral;
 }

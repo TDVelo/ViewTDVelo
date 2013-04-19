@@ -1,5 +1,10 @@
 package fr.gillouard.tdvelo.server.palmares;
 
+import static fr.gillouard.tdvelo.shared.Epreuve.Discipline.ADRESSE;
+import static fr.gillouard.tdvelo.shared.Epreuve.Discipline.CYCLOCROSS;
+import static fr.gillouard.tdvelo.shared.Epreuve.Discipline.ROUTE;
+import static fr.gillouard.tdvelo.shared.Epreuve.Discipline.VITESSE;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,19 +24,16 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
+import fr.gillouard.tdvelo.client.ObjectUtils;
 import fr.gillouard.tdvelo.client.palmares.service.PalmaresService;
 import fr.gillouard.tdvelo.server.DataSource;
 import fr.gillouard.tdvelo.shared.Coureur;
 import fr.gillouard.tdvelo.shared.Epreuve;
+import fr.gillouard.tdvelo.shared.Epreuve.Discipline;
 import fr.gillouard.tdvelo.shared.Palmares;
 import fr.gillouard.tdvelo.shared.Resultat;
 
 public class PalmaresServiceImpl extends RemoteServiceServlet implements PalmaresService {
-
-	public static final String ROUTE = "Route";
-	public static final String ADRESSE = "Adresse";
-	public static final String CYCLO = "Cyclo-cross";
-	public static final String VITESSE = "Vitesse";
 
 	/** LOGGER. **/
 	private static final Log LOG = LogFactory.getLog(PalmaresServiceImpl.class);
@@ -67,7 +69,9 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 				// Sauvegarde des disciplines par dossard
 				Epreuve epreuve = new Epreuve();
 
-				epreuve.setDiscipline(result.getString("discipline"));
+				Discipline d = Discipline.ValueOf(result.getString("discipline"));
+
+				epreuve.setDiscipline(d);
 				epreuve.setTemps(result.getLong("temps"));
 				epreuve.setClassement(result.getInt("classement"));
 				epreuve.setPenalite(result.getLong("penalite"));
@@ -78,7 +82,7 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 					listEpreuveRoute.add(epreuve);
 				} else if (ADRESSE.equals(epreuve.getDiscipline())) {
 					listEpreuveAdresse.add(epreuve);
-				} else if (CYCLO.equals(epreuve.getDiscipline())) {
+				} else if (CYCLOCROSS.equals(epreuve.getDiscipline())) {
 					listEpreuvecyclocros.add(epreuve);
 				} else if (VITESSE.equals(epreuve.getDiscipline())) {
 					listEpreuveVitesse.add(epreuve);
@@ -158,11 +162,11 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 			for (Coureur coureur : coureurs) {
 				Resultat resultat = new Resultat();
 				resultat.setCoureur(coureur);
-				Map<String, Epreuve> epreuves = new HashMap<String, Epreuve>();
+				Map<Discipline, Epreuve> epreuves = new HashMap<Discipline, Epreuve>();
 
 				// Calcul des classements par epreuve
 				int classementGeneral = ajouterEpreuveCoureur(epreuves, VITESSE, listEpreuveVitesse, coureur);
-				classementGeneral += ajouterEpreuveCoureur(epreuves, CYCLO, listEpreuvecyclocros, coureur);
+				classementGeneral += ajouterEpreuveCoureur(epreuves, CYCLOCROSS, listEpreuvecyclocros, coureur);
 				classementGeneral += ajouterEpreuveCoureur(epreuves, ROUTE, listEpreuveRoute, coureur);
 				classementGeneral += ajouterEpreuveCoureur(epreuves, ADRESSE, listEpreuveAdresse, coureur);
 
@@ -180,7 +184,7 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 			displayEpreuves(listEpreuveAdresse);
 
 			// TODO Mise a jour en base des classements ????
-			
+
 			// Tri des lignes par classement general
 			Collections.sort(resultats, new Comparator<Resultat>() {
 				@Override
@@ -241,7 +245,7 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 	 * @param coureur
 	 * @return Classement de l'epreuve ou 1000
 	 */
-	private int ajouterEpreuveCoureur(Map<String, Epreuve> epreuves, final String discipline,
+	private int ajouterEpreuveCoureur(Map<Discipline, Epreuve> epreuves, final Discipline discipline,
 			final List<Epreuve> listEpreuve, Coureur coureur) {
 		Epreuve epreuve = this.calculerClassementCoureur(listEpreuve, coureur);
 		if (epreuve == null) {
@@ -253,7 +257,7 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 
 	}
 
-	private Epreuve creerEpreuveSansClassement(final String discipline, final Coureur coureur) {
+	private Epreuve creerEpreuveSansClassement(final Discipline discipline, final Coureur coureur) {
 		// Classement non trouve : on consolide la MAP sans resultat pour
 		// permettre les calculs de classment
 		Epreuve epreuve = new Epreuve();
@@ -321,43 +325,7 @@ public class PalmaresServiceImpl extends RemoteServiceServlet implements Palmare
 
 	public void displayEpreuves(final List<Epreuve> epreuves) {
 		for (Epreuve epreuve : epreuves) {
-			System.out.println(PalmaresServiceImpl.epreuveToString(epreuve));
+			System.out.println(ObjectUtils.epreuveToString(epreuve));
 		}
-	}
-
-	public static String coureurToString(final Coureur coureur) {
-		StringBuffer display = new StringBuffer();
-		display.append(coureur.getCategorie());
-		display.append(" - ");
-		display.append(coureur.getNom());
-		display.append(" - ");
-		display.append(coureur.getPrenom());
-		display.append(" - ");
-		display.append(coureur.getDossard());
-		display.append(" - ");
-		display.append(coureur.getClub());
-		display.append(" - ");
-		display.append(coureur.getEquipe());
-
-		return display.toString();
-
-	}
-
-	public static String epreuveToString(final Epreuve epreuve) {
-		StringBuffer display = new StringBuffer();
-
-		display.append(epreuve.getDiscipline());
-		display.append(" - classement : ");
-		display.append(epreuve.getClassement());
-		display.append(" - tps : ");
-		display.append(epreuve.getTemps());
-		display.append(" - penalite : ");
-		display.append(epreuve.getPenalite());
-		display.append(" - cumule : ");
-		display.append(epreuve.getTempsCumule());
-		display.append(" - dossard : ");
-		display.append(epreuve.getDossard());
-
-		return display.toString();
 	}
 }

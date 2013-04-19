@@ -1,7 +1,13 @@
 package fr.gillouard.tdvelo;
 
+import static fr.gillouard.tdvelo.shared.Epreuve.Discipline.ADRESSE;
+import static fr.gillouard.tdvelo.shared.Epreuve.Discipline.CYCLOCROSS;
+import static fr.gillouard.tdvelo.shared.Epreuve.Discipline.ROUTE;
+import static fr.gillouard.tdvelo.shared.Epreuve.Discipline.VITESSE;
+
 import org.junit.Test;
 
+import fr.gillouard.tdvelo.client.ObjectUtils;
 import fr.gillouard.tdvelo.server.palmares.PalmaresServiceImpl;
 import fr.gillouard.tdvelo.shared.Palmares;
 import fr.gillouard.tdvelo.shared.Resultat;
@@ -16,16 +22,12 @@ public class PalamaresServiceTest {
 
 		System.out.println(this.displayEntete());
 		for (Resultat resultat : palmares.getResultats()) {
-			System.out.println(PalmaresServiceImpl.coureurToString(resultat.getCoureur()));
+			System.out.println(ObjectUtils.coureurToString(resultat.getCoureur()));
 			System.out.println("---- General : " + resultat.getClassementGeneral() + " ---");
-			System.out.println(PalmaresServiceImpl.epreuveToString(resultat.getEpreuves().get(
-					PalmaresServiceImpl.VITESSE)));
-			System.out.println(PalmaresServiceImpl.epreuveToString(resultat.getEpreuves().get(
-					PalmaresServiceImpl.ADRESSE)));
-			System.out.println(PalmaresServiceImpl
-					.epreuveToString(resultat.getEpreuves().get(PalmaresServiceImpl.CYCLO)));
-			System.out.println(PalmaresServiceImpl
-					.epreuveToString(resultat.getEpreuves().get(PalmaresServiceImpl.ROUTE)));
+			System.out.println(ObjectUtils.epreuveToString(resultat.getEpreuves().get(VITESSE)));
+			System.out.println(ObjectUtils.epreuveToString(resultat.getEpreuves().get(ADRESSE)));
+			System.out.println(ObjectUtils.epreuveToString(resultat.getEpreuves().get(CYCLOCROSS)));
+			System.out.println(ObjectUtils.epreuveToString(resultat.getEpreuves().get(ROUTE)));
 			System.out.println("---------------------------------------------------------");
 		}
 
